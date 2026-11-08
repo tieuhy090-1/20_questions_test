@@ -1,0 +1,840 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="theme-color" content="#172554" />
+<title>Hobby Quest | English 7</title>
+
+<!-- Firebase App & Realtime Database SDKs -->
+<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+
+<style>
+  :root {
+    --navy: #172554;
+    --blue: #2563eb;
+    --sky: #dbeafe;
+    --purple: #7c3aed;
+    --ink: #172033;
+    --muted: #64748b;
+    --line: #e2e8f0;
+    --green: #15803d;
+    --red: #b91c1c;
+    --gold: #fbbf24;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+    color: var(--ink);
+    background: radial-gradient(circle at 10% 0%, #dbeafe 0, transparent 30%), radial-gradient(circle at 100% 20%, #ede9fe 0, transparent 28%), #f8fafc;
+    padding: 22px;
+  }
+  button, input { font: inherit; }
+  .shell { width: min(840px, 100%); margin: 0 auto; }
+  .topline {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: 2px 2px 18px;
+    color: #334155;
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+  }
+  .brand { display: flex; align-items: center; gap: 9px; }
+  .brand-icon {
+    width: 34px;
+    height: 34px;
+    border-radius: 12px;
+    background: var(--navy);
+    display: grid;
+    place-items: center;
+    color: white;
+    font-size: 18px;
+    box-shadow: 0 6px 14px #17255430;
+  }
+  .tag {
+    border: 1px solid #cbd5e1;
+    background: #ffffffb8;
+    border-radius: 999px;
+    padding: 7px 11px;
+    font-size: 11px;
+    letter-spacing: .06em;
+  }
+  .panel {
+    background: #fff;
+    border: 1px solid #e5eaf2;
+    border-radius: 27px;
+    box-shadow: 0 20px 60px #1e293b12;
+    overflow: hidden;
+  }
+  .hero {
+    padding: clamp(26px, 6vw, 48px);
+    background: linear-gradient(130deg, #172554, #1d4ed8 62%, #7c3aed);
+    color: white;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero:after {
+    content: "✦";
+    position: absolute;
+    right: 35px;
+    top: 5px;
+    font-size: 150px;
+    line-height: 1;
+    color: #ffffff13;
+    transform: rotate(12deg);
+  }
+  .eyebrow {
+    font-size: 12px;
+    font-weight: 900;
+    letter-spacing: .17em;
+    text-transform: uppercase;
+    color: #bfdbfe;
+    margin-bottom: 14px;
+  }
+  h1 {
+    font-size: clamp(36px, 8vw, 56px);
+    line-height: .98;
+    letter-spacing: -.055em;
+    margin: 0 0 15px;
+    max-width: 520px;
+  }
+  .hero p { margin: 0; max-width: 500px; color: #e0e7ff; font-size: 16px; line-height: 1.6; }
+  .hero-chips { display: flex; gap: 9px; flex-wrap: wrap; margin-top: 25px; }
+  .chip {
+    font-size: 12px;
+    font-weight: 800;
+    color: white;
+    border: 1px solid #ffffff40;
+    background: #ffffff18;
+    padding: 8px 12px;
+    border-radius: 999px;
+  }
+  .content { padding: clamp(22px, 5vw, 38px); }
+  .intro-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 4px 0 24px; }
+  .info { background: #f8fafc; border: 1px solid var(--line); padding: 15px; border-radius: 16px; }
+  .info b { display: block; font-size: 19px; color: var(--navy); }
+  .info span { font-size: 12px; color: var(--muted); }
+  label { display: block; font-weight: 800; font-size: 13px; margin-bottom: 8px; }
+  input {
+    width: 100%;
+    border: 1.5px solid #cbd5e1;
+    border-radius: 14px;
+    padding: 14px 15px;
+    outline: none;
+    background: #fff;
+  }
+  input:focus { border-color: var(--blue); box-shadow: 0 0 0 4px #2563eb18; }
+  
+  .btn-group { display: flex; gap: 10px; flex-wrap: wrap; }
+  .primary {
+    border: 0;
+    background: var(--gold);
+    color: #172554;
+    font-weight: 900;
+    padding: 15px 22px;
+    border-radius: 14px;
+    cursor: pointer;
+    box-shadow: 0 8px 18px #fbbf2438;
+    transition: .18s transform, .18s filter;
+  }
+  .primary:hover { transform: translateY(-2px); filter: brightness(1.02); }
+  .primary:disabled { opacity: .45; cursor: not-allowed; transform: none; }
+  
+  .secondary {
+    border: 1.5px solid #cbd5e1;
+    background: #fff;
+    color: var(--ink);
+    font-weight: 800;
+    padding: 14px 20px;
+    border-radius: 14px;
+    cursor: pointer;
+    transition: .15s background, .15s border-color;
+  }
+  .secondary:hover { background: #f1f5f9; border-color: #94a3b8; }
+  
+  .start-row { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-top: 18px; }
+  .note { font-size: 12px; color: var(--muted); line-height: 1.5; }
+  
+  /* Quiz Header */
+  .quiz-head { padding: 22px 26px 18px; border-bottom: 1px solid var(--line); }
+  .quiz-top { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 16px; }
+  .player { font-size: 13px; color: var(--muted); font-weight: 700; }
+  .score-pill { background: #eff6ff; color: #1d4ed8; padding: 8px 12px; border-radius: 999px; font-size: 12px; font-weight: 900; }
+  .progress-meta { display: flex; justify-content: space-between; color: var(--muted); font-size: 12px; font-weight: 800; margin-bottom: 8px; }
+  .progress { height: 9px; background: #e2e8f0; border-radius: 999px; overflow: hidden; }
+  .progress-fill { height: 100%; width: 0; background: linear-gradient(90deg, #2563eb, #8b5cf6); border-radius: 999px; transition: width .3s; }
+  
+  /* Question Area */
+  .question-area { padding: clamp(22px, 5vw, 38px); }
+  .question-kicker { color: var(--purple); font-size: 12px; font-weight: 900; text-transform: uppercase; letter-spacing: .12em; margin-bottom: 12px; }
+  .question { font-size: clamp(21px, 4.5vw, 29px); line-height: 1.32; letter-spacing: -.025em; font-weight: 850; margin: 0 0 24px; }
+  .options { display: grid; gap: 11px; }
+  .option {
+    width: 100%;
+    text-align: left;
+    background: #fff;
+    border: 1.5px solid #dbe2ec;
+    border-radius: 16px;
+    padding: 14px;
+    display: flex;
+    align-items: center;
+    gap: 13px;
+    cursor: pointer;
+    color: var(--ink);
+    transition: .15s;
+  }
+  .option:hover:not(:disabled) { border-color: #93c5fd; background: #f8fbff; transform: translateY(-1px); }
+  .letter { width: 34px; height: 34px; flex: 0 0 34px; border-radius: 11px; background: #f1f5f9; color: #475569; display: grid; place-items: center; font-weight: 900; }
+  .option-text { font-weight: 700; line-height: 1.4; }
+  .option.correct { border-color: #86efac; background: #f0fdf4; }
+  .option.correct .letter { background: #16a34a; color: white; }
+  .option.wrong { border-color: #fca5a5; background: #fff1f2; }
+  .option.wrong .letter { background: #dc2626; color: white; }
+  .option:disabled { cursor: default; }
+  
+  .feedback { margin-top: 17px; padding: 15px 16px; border-radius: 15px; display: none; line-height: 1.5; font-size: 14px; }
+  .feedback.show { display: block; }
+  .feedback.good { background: #f0fdf4; border: 1px solid #bbf7d0; color: #166534; }
+  .feedback.bad { background: #fff7ed; border: 1px solid #fed7aa; color: #9a3412; }
+  .feedback strong { display: block; margin-bottom: 3px; }
+  
+  .actions { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-top: 23px; }
+  .small-btn { border: 1px solid var(--line); background: #fff; padding: 12px 15px; border-radius: 13px; font-weight: 800; color: #334155; cursor: pointer; }
+  .small-btn:hover { background: #f8fafc; }
+  .hidden { display: none !important; }
+  
+  /* Result Screen */
+  .result { text-align: center; padding: 36px 26px 30px; }
+  .result-icon { font-size: 54px; margin-bottom: 12px; }
+  .result h2 { font-size: 34px; letter-spacing: -.04em; margin: 0 0 8px; }
+  .result p { color: var(--muted); margin: 0 auto 22px; max-width: 470px; line-height: 1.55; }
+  .score-ring { width: 150px; height: 150px; border-radius: 50%; margin: 22px auto; background: conic-gradient(#2563eb var(--score), #e2e8f0 0); display: grid; place-items: center; position: relative; }
+  .score-ring:before { content: ""; position: absolute; inset: 10px; border-radius: 50%; background: white; }
+  .score-inside { z-index: 1; }
+  .score-big { font-size: 39px; font-weight: 950; color: var(--navy); line-height: 1; }
+  .score-small { font-size: 11px; color: var(--muted); font-weight: 800; text-transform: uppercase; letter-spacing: .1em; margin-top: 4px; }
+  .result-stats { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; margin: 16px 0 25px; }
+  .stat { background: #f8fafc; border: 1px solid var(--line); padding: 10px 15px; border-radius: 13px; font-size: 12px; color: var(--muted); }
+  .stat b { display: block; font-size: 19px; color: var(--ink); }
+  .result-actions { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; margin-bottom: 25px; }
+  
+  /* Review & History & Leaderboard Sections */
+  .section-box { padding: 0 26px 30px; border-top: 1px solid var(--line); margin-top: 20px; }
+  .section-box h3 { font-size: 18px; margin: 20px 0 12px; display: flex; justify-content: space-between; align-items: center; }
+  
+  .review-item { border: 1px solid var(--line); border-radius: 14px; padding: 13px 14px; margin-top: 9px; text-align: left; background: #fff; }
+  .review-item .r-q { font-weight: 850; margin-bottom: 6px; }
+  .review-item .r-a { font-size: 13px; line-height: 1.5; color: var(--muted); }
+  .review-item .r-a b { color: var(--green); }
+  
+  /* Tables for Leaderboard & History */
+  .table-responsive { overflow-x: auto; margin-top: 10px; }
+  .custom-table { width: 100%; border-collapse: collapse; text-align: left; font-size: 14px; }
+  .custom-table th { background: #f1f5f9; color: var(--navy); padding: 12px; font-weight: 800; border-bottom: 2px solid var(--line); }
+  .custom-table td { padding: 12px; border-bottom: 1px solid var(--line); color: var(--ink); }
+  .custom-table tr:nth-child(even) { background: #f8fafc; }
+  .custom-table tr:hover { background: #eff6ff; }
+  
+  .rank-badge { display: inline-grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; font-weight: 900; font-size: 12px; background: #f1f5f9; color: #475569; }
+  .rank-1 { background: #fef3c7; color: #b45309; }
+  .rank-2 { background: #e2e8f0; color: #475569; }
+  .rank-3 { background: #ffedd5; color: #c2410c; }
+  
+  .badge-score { background: #dbeafe; color: #1e40af; padding: 4px 8px; border-radius: 8px; font-weight: 800; font-size: 12px; }
+  .view-btn { border: 1px solid var(--blue); background: #eff6ff; color: var(--blue); border-radius: 8px; padding: 5px 10px; font-size: 12px; font-weight: 700; cursor: pointer; }
+  .view-btn:hover { background: var(--blue); color: #fff; }
+  
+  .danger-btn { border: 1px solid #fca5a5; background: #fff1f2; color: var(--red); border-radius: 8px; padding: 5px 10px; font-size: 12px; font-weight: 700; cursor: pointer; }
+  .danger-btn:hover { background: var(--red); color: #fff; }
+
+  /* Modal */
+  .modal-overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; z-index: 999; padding: 15px; }
+  .modal-content { background: #fff; border-radius: 20px; width: min(650px, 100%); max-height: 85vh; overflow-y: auto; padding: 24px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); }
+  .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--line); padding-bottom: 12px; margin-bottom: 16px; }
+  .modal-header h3 { margin: 0; font-size: 18px; color: var(--navy); }
+  .close-btn { background: none; border: none; font-size: 20px; font-weight: bold; cursor: pointer; color: var(--muted); }
+  
+  .footer { text-align: center; color: #64748b; font-size: 11px; margin: 16px auto 0; line-height: 1.5; }
+  
+  @media(max-width: 520px) {
+    body { padding: 12px; }
+    .topline { margin-bottom: 12px; }
+    .tag { font-size: 10px; }
+    .intro-grid { grid-template-columns: 1fr 1fr; }
+    .start-row { align-items: stretch; flex-direction: column; }
+    .start-row .btn-group { flex-direction: column; }
+    .start-row .primary, .start-row .secondary { width: 100%; }
+    .quiz-head { padding: 18px 18px 15px; }
+    .question-area { padding: 22px 18px; }
+    .actions .primary { padding: 13px 15px; }
+    .section-box { padding: 0 18px 22px; }
+  }
+</style>
+</head>
+<body>
+<div class="shell">
+  <div class="topline">
+    <div class="brand"><div class="brand-icon">★</div><span>ENGLISH 7 • GLOBAL SUCCESS</span></div>
+    <div class="tag">HOBBY QUEST</div>
+  </div>
+  <main class="panel">
+    <!-- WELCOME SCREEN -->
+    <section id="welcome">
+      <div class="hero">
+        <div class="eyebrow">Choose • Think • Win</div>
+        <h1>HOBBY<br>QUEST</h1>
+        <p>Ready to show what you know about hobbies? Answer 20 multiple-choice questions and collect your points!</p>
+        <div class="hero-chips">
+          <span class="chip">🎯 20 questions</span>
+          <span class="chip">⚡ Instant feedback</span>
+          <span class="chip">🏆 Real-time Leaderboard</span>
+        </div>
+      </div>
+      <div class="content">
+        <div class="intro-grid">
+          <div class="info"><b>20</b><span>Multiple-choice questions</span></div>
+          <div class="info"><b>10–15 min</b><span>Suggested playing time</span></div>
+        </div>
+
+        <!-- BẢNG XẾP HẠNG TRỰC TIẾP TRÊN MÀN HÌNH CHÍNH -->
+        <div style="margin-bottom: 22px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <h3 style="margin: 0; font-size: 16px; color: var(--navy);">🏆 Bảng Xếp Hạng Trực Tuyến</h3>
+            <button class="small-btn" id="leaderboardBtnHome" style="font-size: 11px; padding: 6px 10px;">Xem tất cả →</button>
+          </div>
+          <div class="table-responsive" style="border: 1px solid var(--line); border-radius: 14px; max-height: 220px; overflow-y: auto;">
+            <table class="custom-table" style="margin: 0; font-size: 13px;">
+              <thead>
+                <tr>
+                  <th style="width: 45px; padding: 8px;">Hạng</th>
+                  <th style="padding: 8px;">Học sinh</th>
+                  <th style="padding: 8px;">Điểm số</th>
+                  <th style="padding: 8px;">Thời gian</th>
+                </tr>
+              </thead>
+              <tbody id="homeRankTableBody">
+                <!-- Rendered by Firebase Realtime Data -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <label for="studentName">Your name / Tên của bạn</label>
+        <input id="studentName" maxlength="40" placeholder="Enter your name..." autocomplete="given-name" />
+        <div class="start-row">
+          <span class="note">Choose the best answer: A, B, C or D.<br>Scores & answers sync to global leaderboard automatically.</span>
+          <div class="btn-group">
+            <button class="primary" id="startBtn">START GAME →</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- GAME SCREEN -->
+    <section id="game" class="hidden">
+      <div class="quiz-head">
+        <div class="quiz-top">
+          <div class="player" id="playerLabel">Player</div>
+          <div class="score-pill">⭐ Score: <span id="scoreNow">0</span></div>
+        </div>
+        <div class="progress-meta">
+          <span id="progressText">QUESTION 1 / 20</span>
+          <span id="percentText">5% completed</span>
+        </div>
+        <div class="progress"><div class="progress-fill" id="progressFill"></div></div>
+      </div>
+      <div class="question-area">
+        <div class="question-kicker" id="category">HOBBY & GRAMMAR</div>
+        <h2 class="question" id="questionText"></h2>
+        <div class="options" id="options"></div>
+        <div class="feedback" id="feedback" aria-live="polite"></div>
+        <div class="actions">
+          <button class="small-btn" id="quitBtn">← Exit game</button>
+          <button class="primary" id="nextBtn" disabled>Next question →</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- FINISH SCREEN -->
+    <section id="finish" class="hidden">
+      <div class="result">
+        <div class="result-icon" id="resultIcon">🏆</div>
+        <div class="eyebrow" style="color:#2563eb">QUEST COMPLETE</div>
+        <h2 id="resultTitle">Great job!</h2>
+        <p id="resultMessage"></p>
+        <div class="score-ring" id="scoreRing">
+          <div class="score-inside">
+            <div class="score-big" id="scoreFinal">0/20</div>
+            <div class="score-small">Your score</div>
+          </div>
+        </div>
+        <div class="result-stats">
+          <div class="stat"><b id="correctCount">0</b>Correct</div>
+          <div class="stat"><b id="wrongCount">0</b>Incorrect</div>
+          <div class="stat"><b id="percentFinal">0%</b>Accuracy</div>
+        </div>
+        <div class="result-actions">
+          <button class="primary" id="reviewBtn">Review current test ↓</button>
+          <button class="secondary" id="leaderboardBtnFinish">🏆 Bảng Xếp Hạng</button>
+          <button class="small-btn" id="restartBtn">↻ Play again</button>
+        </div>
+      </div>
+      <div class="section-box hidden" id="reviewArea">
+        <h3>Answer review</h3>
+        <div id="reviewList"></div>
+      </div>
+    </section>
+
+    <!-- GLOBAL LEADERBOARD & HISTORY SECTION -->
+    <section id="leaderboardSection" class="section-box hidden" style="padding-top: 20px;">
+      <h3>
+        <span>🏆 Bảng Xếp Hạng & Lịch Sử (Real-time)</span>
+        <button class="small-btn" id="closeLeaderboardBtn">← Back</button>
+      </h3>
+      <div style="display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap;">
+        <button class="small-btn" id="tabRank" style="background:#eff6ff; border-color:#93c5fd; color:#1d4ed8">Bảng Xếp Hạng (Cao Nhất)</button>
+        <button class="small-btn" id="tabHistory">Lịch Sử Làm Bài (Tất Cả)</button>
+        <button class="danger-btn" id="clearDataBtn" style="margin-left: auto;">Xóa Tất Cả Dữ Liệu</button>
+      </div>
+
+      <!-- Rank Sub-view -->
+      <div id="rankView" class="table-responsive">
+        <table class="custom-table">
+          <thead>
+            <tr>
+              <th style="width: 50px;">Hạng</th>
+              <th>Học sinh</th>
+              <th>Điểm số</th>
+              <th>Chính xác</th>
+              <th>Thời gian</th>
+              <th>Chi tiết</th>
+            </tr>
+          </thead>
+          <tbody id="rankTableBody">
+            <!-- Rendered by Firebase -->
+          </tbody>
+        </table>
+      </div>
+
+      <!-- History Sub-view -->
+      <div id="historyView" class="table-responsive hidden">
+        <table class="custom-table">
+          <thead>
+            <tr>
+              <th style="width: 50px;">#</th>
+              <th>Học sinh</th>
+              <th>Điểm số</th>
+              <th>Chính xác</th>
+              <th>Thời gian làm bài</th>
+              <th>Chi tiết</th>
+            </tr>
+          </thead>
+          <tbody id="historyTableBody">
+            <!-- Rendered by Firebase -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+  
+  <div class="footer">
+    Practice game based on the 20-question “Hobbies” multiple-choice worksheet.<br>
+    Made for learning • English 7 – Global Success (Synced via Firebase)
+  </div>
+</div>
+
+<!-- Modal xem chi tiết kết quả làm bài -->
+<div id="detailModal" class="modal-overlay hidden">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3 id="modalTitle">Chi Tiết Bài Làm</h3>
+      <button class="close-btn" id="modalCloseBtn">&times;</button>
+    </div>
+    <div id="modalBody"></div>
+  </div>
+</div>
+
+<script>
+  // ================= CẤU HÌNH FIREBASE KẾT NỐI DATABASE =================
+  const firebaseConfig = {
+    databaseURL: "https://hobbyquest-3ccb9-default-rtdb.firebaseio.com/"
+  };
+
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.database();
+  const resultsRef = db.ref('hobby_quest_results');
+
+  let cloudResults = [];
+
+  // Lắng nghe dữ liệu thời gian thực từ Firebase Realtime Database
+  resultsRef.on('value', (snapshot) => {
+    const data = snapshot.val();
+    cloudResults = [];
+    if (data) {
+      Object.keys(data).forEach(key => {
+        cloudResults.push({ ...data[key], firebaseKey: key });
+      });
+      // Sắp xếp mới nhất lên đầu
+      cloudResults.sort((a, b) => b.id - a.id);
+    }
+    // Cập nhật giao diện lập tức khi có dữ liệu mới thay đổi
+    renderHomeRankTable();
+    if (!document.getElementById('rankView').classList.contains('hidden')) renderRankTable();
+    if (!document.getElementById('historyView').classList.contains('hidden')) renderHistoryTable();
+  });
+
+  function getSavedResults() {
+    return cloudResults;
+  }
+
+  function saveResultRecord(record) {
+    // Đẩy bản ghi lên Firebase Database
+    resultsRef.push(record);
+  }
+
+  function clearCloudData() {
+    resultsRef.remove();
+  }
+</script>
+
+<script>
+const QUESTIONS = [
+ {q:"My hobby is ________ books in my free time.",o:["read","reading","reads","to read"],a:1,e:"After ‘My hobby is’, use a gerund (V-ing): reading."},
+ {q:"My sister enjoys ________ photos.",o:["take","takes","taking","to taking"],a:2,e:"‘Enjoy’ is followed by a gerund (V-ing): enjoys taking photos."},
+ {q:"My father likes ________ gardening at the weekend.",o:["do","doing","does","to doing"],a:1,e:"The correct option in this exercise is ‘doing’: likes doing gardening."},
+ {q:"Nam ________ playing computer games in his free time.",o:["enjoy","enzoys","enjoying","to enjoy"],a:1,e:"Nam is a singular subject, so use ‘enjoys’."},
+ {q:"We usually ________ swimming at the weekend.",o:["play","do","go","make"],a:2,e:"Use ‘go’ with the activity ‘swimming’: go swimming."},
+ {q:"Which hobby uses a camera?",o:["Gardening","Photography","Cycling","Cooking"],a:1,e:"Photography is the hobby of taking photographs with a camera."},
+ {q:"My grandfather likes ________ flowers in his garden.",o:["grow","grows","growing","grew"],a:2,e:"‘Like’ can be followed by a gerund (V-ing): likes growing."},
+ {q:"My hobby is ________. I often prepare meals for my family.",o:["cooking","gardening","collecting coins","taking photos"],a:0,e:"Preparing meals is cooking."},
+ {q:"I think collecting stamps is an ________ hobby.",o:["interesting","interested","interest","interests"],a:0,e:"Use ‘interesting’ to describe the hobby. ‘Interested’ describes a person’s feeling."},
+ {q:"Lan finds ________ dolls interesting.",o:["collect","collects","collecting","collected"],a:2,e:"Use a gerund after ‘finds’: finds collecting dolls interesting."},
+ {q:"My brother has a lot of coins. His hobby is ________ coins.",o:["collecting","cooking","gardening","cycling"],a:0,e:"A hobby involving keeping coins is collecting coins."},
+ {q:"My mother loves ________ because she can make beautiful things from paper.",o:["making origami","swimming","cycling","playing football"],a:0,e:"Origami is the art of making shapes and objects by folding paper."},
+ {q:"I don't like ________ because I think it is boring.",o:["fishing","fish","fishes","to fishing"],a:0,e:"‘Fishing’ is the activity and works as a gerund after ‘like’."},
+ {q:"Hoa thinks ________ is a useful hobby because she can make clothes for herself.",o:["sewing","swimming","skating","camping"],a:0,e:"Sewing is useful for making or repairing clothes."},
+ {q:"Which sentence is grammatically correct?",o:["She enjoys to read books.","She enjoys reading books.","She enjoy reading books.","She enjoys read books."],a:1,e:"The structure is ‘enjoy + V-ing’: She enjoys reading books."},
+ {q:"How much time do you spend on your hobby every day?",o:["Twice a week.","About one hour.","At the weekend.","Three kilometres."],a:1,e:"‘How much time’ asks about a duration. ‘About one hour’ is a duration."},
+ {q:"Your friend asks: “What do you think about making models?” What is the best response?",o:["I think it's difficult but interesting.","I do it every Sunday.","I have three models.","I make it at home."],a:0,e:"‘What do you think about…?’ asks for an opinion."},
+ {q:"Your friend asks: “How often do you go cycling?” What should you answer?",o:["Two hours.","Twice a week.","Two kilometres.","With my brother."],a:1,e:"‘How often’ asks about frequency. ‘Twice a week’ expresses frequency."},
+ {q:"Mary wants to find a hobby that helps her stay healthy and improve her physical strength. Which hobby should she choose?",o:["Collecting stamps.","Reading books.","Playing badminton.","Taking photos."],a:2,e:"Playing badminton is a physical activity that can improve fitness and strength."},
+ {q:"Tom has a free afternoon. He loves plants and wants to grow vegetables at home. What should he do?",o:["Go swimming.","Do gardening.","Collect coins.","Take photographs."],a:1,e:"Gardening involves growing and caring for plants."}
+];
+
+const $ = id => document.getElementById(id);
+let current = 0, score = 0, answers = [], player = "Player";
+
+function show(section) {
+  ['welcome', 'game', 'finish', 'leaderboardSection'].forEach(id => $(id).classList.toggle('hidden', id !== section));
+  if (section === 'welcome') {
+    renderHomeRankTable();
+  }
+}
+
+function start() {
+  player = $('studentName').value.trim() || 'Player';
+  current = 0;
+  score = 0;
+  answers = Array(QUESTIONS.length).fill(null);
+  $('playerLabel').textContent = '👋 ' + player;
+  show('game');
+  renderQuestion();
+}
+
+function renderQuestion() {
+  const q = QUESTIONS[current];
+  $('scoreNow').textContent = score;
+  $('progressText').textContent = `QUESTION ${current + 1} / ${QUESTIONS.length}`;
+  $('percentText').textContent = `${Math.round((current + 1) / QUESTIONS.length * 100)}% completed`;
+  $('progressFill').style.width = ((current + 1) / QUESTIONS.length * 100) + '%';
+  $('questionText').textContent = q.q;
+  $('category').textContent = current < 5 ? 'HOBBY & GRAMMAR' : current < 15 ? 'HOBBY VOCABULARY & GRAMMAR' : 'EVERYDAY ENGLISH';
+  $('options').innerHTML = '';
+  $('feedback').className = 'feedback';
+  $('feedback').innerHTML = '';
+  $('nextBtn').disabled = true;
+  $('nextBtn').textContent = current === QUESTIONS.length - 1 ? 'See my result →' : 'Next question →';
+
+  q.o.forEach((opt, i) => {
+    const b = document.createElement('button');
+    b.className = 'option';
+    b.innerHTML = `<span class="letter">${'ABCD'[i]}</span><span class="option-text"></span>`;
+    b.querySelector('.option-text').textContent = opt;
+    b.addEventListener('click', () => choose(i));
+    $('options').appendChild(b);
+  });
+}
+
+function choose(index) {
+  if (answers[current] !== null) return;
+  const q = QUESTIONS[current];
+  answers[current] = index;
+  const correct = index === q.a;
+  if (correct) score++;
+  [...$('options').children].forEach((b, i) => {
+    b.disabled = true;
+    if (i === q.a) b.classList.add('correct');
+    if (i === index && !correct) b.classList.add('wrong');
+  });
+  const fb = $('feedback');
+  fb.className = 'feedback show ' + (correct ? 'good' : 'bad');
+  fb.innerHTML = `<strong>${correct ? '✓ Correct! +1 point' : '✗ Not quite. The correct answer is ' + 'ABCD'[q.a] + '.'}</strong><span>${q.e}</span>`;
+  $('scoreNow').textContent = score;
+  $('nextBtn').disabled = false;
+}
+
+function next() {
+  if (answers[current] === null) return;
+  if (current < QUESTIONS.length - 1) {
+    current++;
+    renderQuestion();
+  } else {
+    finish();
+  }
+}
+
+function finish() {
+  show('finish');
+  const pct = Math.round(score / QUESTIONS.length * 100);
+  $('scoreFinal').textContent = score + '/20';
+  $('scoreRing').style.setProperty('--score', (pct * 3.6) + 'deg');
+  $('correctCount').textContent = score;
+  $('wrongCount').textContent = QUESTIONS.length - score;
+  $('percentFinal').textContent = pct + '%';
+
+  let title, msg, icon;
+  if (score >= 18) {
+    title = 'Outstanding!';
+    msg = `Fantastic work, ${player}! You really know your hobbies and English grammar.`;
+    icon = '🏆';
+  } else if (score >= 14) {
+    title = 'Great job!';
+    msg = `Well done, ${player}! You have a strong understanding. Keep practising to reach the top score.`;
+    icon = '🌟';
+  } else if (score >= 10) {
+    title = 'Good effort!';
+    msg = `Nice try, ${player}! Review the explanations and play again to improve your score.`;
+    icon = '💪';
+  } else {
+    title = 'Keep practising!';
+    msg = `Don't give up, ${player}! Check the answer review, learn from each question and try again.`;
+    icon = '🌱';
+  }
+  $('resultTitle').textContent = title;
+  $('resultMessage').textContent = msg;
+  $('resultIcon').textContent = icon;
+  $('reviewArea').classList.add('hidden');
+  $('reviewBtn').textContent = 'Review current test ↓';
+  
+  const record = {
+    id: Date.now(),
+    name: player,
+    score: score,
+    total: QUESTIONS.length,
+    percentage: pct,
+    answers: [...answers],
+    timestamp: new Date().toLocaleString('vi-VN')
+  };
+  saveResultRecord(record);
+  renderReviewList(answers, $('reviewList'));
+}
+
+function renderReviewList(userAnswers, container) {
+  container.innerHTML = '';
+  QUESTIONS.forEach((q, i) => {
+    const chosen = userAnswers[i];
+    const ok = chosen === q.a;
+    const d = document.createElement('div');
+    d.className = 'review-item';
+    const qd = document.createElement('div');
+    qd.className = 'r-q';
+    qd.textContent = `${i + 1}. ${q.q}`;
+    const ad = document.createElement('div');
+    ad.className = 'r-a';
+    ad.innerHTML = `Your answer: <b style="color:${ok ? '#15803d' : '#b91c1c'}"></b><br>Correct answer: <b></b><br>${q.e}`;
+    ad.children[0].textContent = chosen === null || chosen === undefined ? 'Not answered' : `${'ABCD'[chosen]}. ${q.o[chosen]}`;
+    ad.children[1].textContent = `${'ABCD'[q.a]}. ${q.o[q.a]}`;
+    d.append(qd, ad);
+    container.appendChild(d);
+  });
+}
+
+function openLeaderboard() {
+  show('leaderboardSection');
+  switchTab('rank');
+}
+
+function switchTab(tab) {
+  const isRank = tab === 'rank';
+  $('tabRank').style.background = isRank ? '#eff6ff' : '#fff';
+  $('tabRank').style.borderColor = isRank ? '#93c5fd' : 'var(--line)';
+  $('tabRank').style.color = isRank ? '#1d4ed8' : '#334155';
+
+  $('tabHistory').style.background = !isRank ? '#eff6ff' : '#fff';
+  $('tabHistory').style.borderColor = !isRank ? '#93c5fd' : 'var(--line)';
+  $('tabHistory').style.color = !isRank ? '#1d4ed8' : '#334155';
+
+  $('rankView').classList.toggle('hidden', !isRank);
+  $('historyView').classList.toggle('hidden', isRank);
+
+  if (isRank) renderRankTable();
+  else renderHistoryTable();
+}
+
+function getRankedList() {
+  const results = getSavedResults();
+  const bestMap = new Map();
+  results.forEach(r => {
+    const existing = bestMap.get(r.name);
+    if (!existing || r.score > existing.score || (r.score === existing.score && r.id > existing.id)) {
+      bestMap.set(r.name, r);
+    }
+  });
+  return Array.from(bestMap.values()).sort((a, b) => b.score - a.score || b.id - a.id);
+}
+
+function renderHomeRankTable() {
+  const ranked = getRankedList();
+  const tbody = $('homeRankTableBody');
+  if (!tbody) return;
+  tbody.innerHTML = '';
+
+  if (ranked.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:var(--muted); padding: 12px;">Chưa có học sinh làm bài. Hãy là người đầu tiên!</td></tr>`;
+    return;
+  }
+
+  ranked.slice(0, 5).forEach((r, idx) => {
+    const tr = document.createElement('tr');
+    let rankBadge = `<span class="rank-badge" style="width:22px;height:22px;font-size:11px;">${idx + 1}</span>`;
+    if (idx === 0) rankBadge = `<span class="rank-badge rank-1" style="width:22px;height:22px;font-size:11px;">1</span>`;
+    else if (idx === 1) rankBadge = `<span class="rank-badge rank-2" style="width:22px;height:22px;font-size:11px;">2</span>`;
+    else if (idx === 2) rankBadge = `<span class="rank-badge rank-3" style="width:22px;height:22px;font-size:11px;">3</span>`;
+
+    tr.innerHTML = `
+      <td style="padding: 8px;">${rankBadge}</td>
+      <td style="padding: 8px;"><b>${escapeHtml(r.name)}</b></td>
+      <td style="padding: 8px;"><span class="badge-score" style="padding:2px 6px;">${r.score}/${r.total}</span></td>
+      <td style="padding: 8px;"><small style="color:var(--muted);">${r.timestamp}</small></td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function renderRankTable() {
+  const ranked = getRankedList();
+  const tbody = $('rankTableBody');
+  tbody.innerHTML = '';
+
+  if (ranked.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:var(--muted); padding: 20px;">Chưa có dữ liệu học sinh làm bài.</td></tr>`;
+    return;
+  }
+
+  ranked.forEach((r, idx) => {
+    const tr = document.createElement('tr');
+    let rankBadge = `<span class="rank-badge">${idx + 1}</span>`;
+    if (idx === 0) rankBadge = `<span class="rank-badge rank-1">1</span>`;
+    else if (idx === 1) rankBadge = `<span class="rank-badge rank-2">2</span>`;
+    else if (idx === 2) rankBadge = `<span class="rank-badge rank-3">3</span>`;
+
+    tr.innerHTML = `
+      <td>${rankBadge}</td>
+      <td><b>${escapeHtml(r.name)}</b></td>
+      <td><span class="badge-score">${r.score}/${r.total}</span></td>
+      <td>${r.percentage}%</td>
+      <td><small style="color:var(--muted);">${r.timestamp}</small></td>
+      <td><button class="view-btn" onclick="openDetailModalByFirebaseKey('${r.firebaseKey}')">Xem lại</button></td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function renderHistoryTable() {
+  const results = getSavedResults();
+  const tbody = $('historyTableBody');
+  tbody.innerHTML = '';
+
+  if (results.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:var(--muted); padding: 20px;">Chưa có lịch sử làm bài nào.</td></tr>`;
+    return;
+  }
+
+  results.forEach((r, idx) => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${results.length - idx}</td>
+      <td><b>${escapeHtml(r.name)}</b></td>
+      <td><span class="badge-score">${r.score}/${r.total}</span></td>
+      <td>${r.percentage}%</td>
+      <td><small style="color:var(--muted);">${r.timestamp}</small></td>
+      <td><button class="view-btn" onclick="openDetailModalByFirebaseKey('${r.firebaseKey}')">Xem lại</button></td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function openDetailModalByFirebaseKey(firebaseKey) {
+  const results = getSavedResults();
+  const record = results.find(r => r.firebaseKey === firebaseKey);
+  if (!record) return;
+
+  $('modalTitle').textContent = `Kết quả của ${record.name} (${record.score}/${record.total} - ${record.timestamp})`;
+  const modalBody = $('modalBody');
+  renderReviewList(record.answers, modalBody);
+  $('detailModal').classList.remove('hidden');
+}
+
+function closeModal() {
+  $('detailModal').classList.add('hidden');
+}
+
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+
+$('startBtn').addEventListener('click', start);
+$('nextBtn').addEventListener('click', next);
+$('quitBtn').addEventListener('click', () => {
+  if (confirm('Exit this game? Your progress in this round will be lost.')) show('welcome');
+});
+$('restartBtn').addEventListener('click', start);
+$('reviewBtn').addEventListener('click', () => {
+  const area = $('reviewArea');
+  area.classList.toggle('hidden');
+  $('reviewBtn').textContent = area.classList.contains('hidden') ? 'Review current test ↓' : 'Hide answer review ↑';
+  if (!area.classList.contains('hidden')) area.scrollIntoView({ behavior: 'smooth', block: 'start' });
+});
+
+$('leaderboardBtnHome').addEventListener('click', openLeaderboard);
+$('leaderboardBtnFinish').addEventListener('click', openLeaderboard);
+$('closeLeaderboardBtn').addEventListener('click', () => show('welcome'));
+
+$('tabRank').addEventListener('click', () => switchTab('rank'));
+$('tabHistory').addEventListener('click', () => switchTab('history'));
+
+$('clearDataBtn').addEventListener('click', () => {
+  if (confirm('Bạn có chắc chắn muốn xóa toàn bộ lịch sử và bảng xếp hạng trên Database không?')) {
+    clearCloudData();
+  }
+});
+
+$('modalCloseBtn').addEventListener('click', closeModal);
+$('detailModal').addEventListener('click', (e) => {
+  if (e.target === $('detailModal')) closeModal();
+});
+
+$('studentName').addEventListener('keydown', e => {
+  if (e.key === 'Enter') start();
+});
+</script>
+</body>
+</html>
